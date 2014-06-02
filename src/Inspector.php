@@ -39,10 +39,11 @@ class Inspector extends ContainerAware
 
     private $options;
 
-    static public function getRerunFileName()
+    public static function getRerunFileName()
     {
         $dir = PhpGuard::getPluginCache('behat');
         $file = $dir.DIRECTORY_SEPARATOR.'rerun.dat';
+
         return $file;
     }
 
@@ -62,7 +63,7 @@ class Inspector extends ContainerAware
 
     public function run(array $paths = array())
     {
-        if(empty($paths)){
+        if (empty($paths)) {
             throw new RuntimeException(
                 'Can not run <comment>behat plugin</comment> '.
                 'with an <comment>empty paths</comment>'
@@ -71,7 +72,7 @@ class Inspector extends ContainerAware
         $arguments = $this->runCliArgs;
 
         $features = array();
-        foreach($paths as $path){
+        foreach ($paths as $path) {
             $features[] = $path;
         }
 
@@ -82,19 +83,19 @@ class Inspector extends ContainerAware
         $process = $this->getRunner()->run($builder);
 
         $results = array();
-        if($process->getExitCode()===0){
+        if ($process->getExitCode()===0) {
             $format = 'Run success: <highlight>%s</highlight>';
-            foreach($paths as $path){
+            foreach ($paths as $path) {
                 $message = sprintf($format,$path);
                 $results[] = ResultEvent::createSucceed($message);
             }
-            if($this->options['all_after_pass']){
+            if ($this->options['all_after_pass']) {
                 $results = array_merge($results,$this->doRunAll());
             }
         }
+
         return $results;
     }
-
 
     public function runAll()
     {
@@ -120,21 +121,20 @@ class Inspector extends ContainerAware
 
         $arguments = $this->runAllArgs;
 
-        if($this->isFailed()){
+        if ($this->isFailed()) {
             $arguments[] = '--rerun='.static::getRerunFileName();
         }
         $builder = new ProcessBuilder($arguments);
 
         $this->getRunner()->run($builder);
 
-
-
-        if(!$this->isFailed()){
+        if (!$this->isFailed()) {
             $results[] = ResultEvent::createSucceed(static::RUN_ALL_SUCCESS_MESSAGE);
-        }else{
+        } else {
             $results = $this->parseRerunFile();
             $results[] = ResultEvent::createFailed(static::RUN_ALL_FAILED_MESSAGE);
         }
+
         return $results;
     }
 
@@ -144,15 +144,16 @@ class Inspector extends ContainerAware
 
         $results = array();
         $contents = explode(PHP_EOL,$contents);
-        foreach($contents as $content){
+        foreach ($contents as $content) {
             $content = trim($content);
-            if($content){
+            if ($content) {
                 $exp = explode(':',$content);
                 $file = $exp[0];
                 $line = $exp[1];
                 $results[] = $this->parseFeatureContent($file,$line);
             }
         }
+
         return $results;
     }
 
@@ -165,6 +166,7 @@ class Inspector extends ContainerAware
         $strlen = strlen('Scenario:');
         $scenario = trim(substr($lineContent,$strlen));
         $message = sprintf('Failed: <highlight>%s</highlight>',$scenario);
+
         return ResultEvent::createFailed($message);
     }
 

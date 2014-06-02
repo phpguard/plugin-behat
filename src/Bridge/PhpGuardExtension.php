@@ -10,10 +10,7 @@
  */
 
 namespace PhpGuard\Plugins\Behat\Bridge;
-use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Behat\Behat\Formatter\ConsoleFormatter;
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Class PhpGuardExtension
@@ -62,6 +59,7 @@ class PhpGuardExtension extends ConsoleFormatter
             'afterOutlineExample',
             'afterStep'
         );
+
         return array_combine($events, $events);
     }
 }

@@ -55,7 +55,7 @@ class BehatPlugin extends Plugin
     }
 
     /**
-     * @param  OptionsResolverInterface $resolver
+     * @param OptionsResolverInterface $resolver
      *
      * @return void
      */
