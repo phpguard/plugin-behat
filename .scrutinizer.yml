@@ -4,4 +4,4 @@ filter:
   excluded-paths:
     - spec/*
     - vendor/*
-    - behat/*
+    - features/*
