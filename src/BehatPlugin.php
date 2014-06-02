@@ -11,6 +11,7 @@
 
 namespace PhpGuard\Plugins\Behat;
 
+use PhpGuard\Application\Event\ProcessEvent;
 use PhpGuard\Application\Plugin\Plugin;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
@@ -20,6 +21,22 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
  */
 class BehatPlugin extends Plugin
 {
+    public function __construct()
+    {
+        $this->setOptions(array());
+    }
+    public function configure()
+    {
+        parent::configure();
+        $container = $this->container;
+
+        $executable = $this->container->get('runner')->findExecutable('behat');
+        $this->options['executable'] = $executable;
+        $container->setShared('behat.inspector',function(){
+            return new Inspector();
+        });
+    }
+
     /**
      * @return string
      */
@@ -43,6 +60,10 @@ class BehatPlugin extends Plugin
      */
     public function runAll()
     {
+        $results = $this->container->get('behat.inspector')
+            ->runAll();
+
+        return new ProcessEvent($this,$results);
     }
 
     /**
@@ -52,6 +73,10 @@ class BehatPlugin extends Plugin
      */
     public function run(array $paths = array())
     {
+        $results = $this->container->get('behat.inspector')
+            ->run($paths);
+
+        return new ProcessEvent($this,$results);
     }
 
     /**
@@ -62,9 +87,11 @@ class BehatPlugin extends Plugin
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(array(
-            'cli'           => null,
-            'run_all_cli'   => null,
-            'coverage'      => false,
+            'cli'               => null,
+            'run_all_cli'       => null,
+            'coverage'          => false,
+            'all_after_pass'    => false,
+            'keep_failed'       => false,
         ));
     }
 }

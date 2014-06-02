@@ -23,12 +23,11 @@ class BehatApplication extends BaseApplication
 {
     public function __construct()
     {
-        parent::__construct('PhpGuard::Behat');
+        BaseApplication::__construct('PhpGuard::Behat');
     }
 
     protected function loadCoreExtension(ContainerBuilder $container, array $configs)
     {
-        parent::loadCoreExtension($container, $configs);
-        $container->addObjectResource(new PhpGuardExtension());
+        BaseApplication::loadCoreExtension($container, $configs);
     }
 }

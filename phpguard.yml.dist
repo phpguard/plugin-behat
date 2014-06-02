@@ -24,3 +24,12 @@ phpspec:
     watch:
         - { pattern: "#^src\/(.+)\.php$#", transform: "spec/PhpGuard/Plugins/Behat/${1}Spec.php" }
         - { pattern: "#^spec\/(.+)\.php$#" }
+
+behat:
+    options:
+        cli:                "--format=progress"
+        run_all_cli:        "--format=pretty"
+    watch:
+        - { pattern: "#^src\/(.+)\.php$#", transform: "features/run/run.feature" }
+        - { pattern: "#^features\/(.+)\.feature$#" }
+        - { pattern: "#^features\/(.+)\.php$#", transform: features }

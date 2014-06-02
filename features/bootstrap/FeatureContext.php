@@ -1,12 +1,8 @@
 <?php
 
-use Behat\Behat\Context\ClosuredContextInterface,
-    Behat\Behat\Context\TranslatedContextInterface,
-    Behat\Behat\Context\BehatContext,
-    Behat\Behat\Exception\PendingException,
-    Behat\Behat\Exception\BehaviorException;
-use Behat\Gherkin\Node\PyStringNode,
-    Behat\Gherkin\Node\TableNode;
+require_once __DIR__.'/../../vendor/autoload.php';
+use Behat\Behat\Context\BehatContext;
+use PhpGuard\Plugins\Behat\Bridge\Context\PhpGuardContext;
 
 /**
  * Features context.
@@ -21,22 +17,7 @@ class FeatureContext extends BehatContext
      */
     public function __construct(array $parameters)
     {
-        // Initialize your context here
-    }
-
-    /**
-     * @Given /^I have success step$/
-     */
-    public function iRunSuccess()
-    {
-        return true;
-    }
-
-    /**
-     * @Given /^I have failed step$/
-     */
-    public function iRunFailed()
-    {
-        throw new BehaviorException('Failed Step');
+        $this->useContext('phpguard',new PhpGuardContext());
+        $this->useContext('plugin-behat',new BehatPluginContext());
     }
 }

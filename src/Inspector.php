@@ -54,10 +54,10 @@ class Inspector extends ContainerAware
         $options            = $this->getPlugin()->getOptions();
         $executable         = $options['executable'].' ';
 
-        $cli                = $options['cli'];
+        $cli                = !is_null($options['cli']) ? $options['cli']:'';
         $runAllCli          = !is_null($options['run_all_cli']) ? $options['run_all_cli']:$cli;
-        $this->runCliArgs   = explode(' ',$executable.$cli);
-        $this->runAllArgs   = explode(' ',$executable.$runAllCli);
+        $this->runCliArgs   = explode(' ',trim($executable.$cli));
+        $this->runAllArgs   = explode(' ',trim($executable.$runAllCli));
         $this->options      = $options;
     }
 
@@ -73,7 +73,10 @@ class Inspector extends ContainerAware
 
         $features = array();
         foreach ($paths as $path) {
-            $features[] = $path;
+            $path = trim($path);
+            if($path){
+                $features[] = ltrim(str_replace(getcwd(),'',$path),'\\/');
+            }
         }
 
         $features = array_unique($features);
