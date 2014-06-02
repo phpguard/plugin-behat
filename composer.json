@@ -14,7 +14,8 @@
     },
     "require-dev": {
         "phpguard/plugin-phpspec":  "@dev",
-        "phpspec/phpspec": "2.1.*@dev"
+        "phpspec/phpspec":          "2.1.*@dev",
+        "bossa/phpspec2-expect":    "*"
     },
     "autoload": {
         "psr-4": {
