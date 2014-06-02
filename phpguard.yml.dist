@@ -1,0 +1,26 @@
+phpguard:
+    ignores: build
+    coverage:
+        whitelist:
+            - src
+        blacklist:
+            - spec
+            - features
+            - vendor
+        show_uncovered_files:   true
+        show_only_summary:      true
+        output.html:            build/coverage
+        output.text:            true
+        output.clover:          build/logs/clover.xml
+
+phpspec:
+    options:
+        cli:                "--format=pretty"
+        all_on_start:       true
+        all_after_pass:     true
+        keep_failed:        true
+        run_all_cli:        "--format=dot"
+
+    watch:
+        - { pattern: "#^src\/(.+)\.php$#", transform: "spec/PhpGuard/Plugins/Behat/${1}Spec.php" }
+        - { pattern: "#^spec\/(.+)\.php$#" }

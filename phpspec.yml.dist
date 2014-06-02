@@ -1,0 +1,5 @@
+formatter.name: pretty
+suites:
+    Application:
+        namespace:      PhpGuard\Plugins\Behat
+        psr4_prefix:    PhpGuard\Plugins\Behat

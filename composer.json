@@ -1,0 +1,24 @@
+{
+    "name": "phpguard/plugin-behat",
+    "description": "Behat Plugin for PhpGuard",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anthonius Munthi",
+            "email": "me@itstoni.com"
+        }
+    ],
+    "require": {
+        "behat/behat":              "~2.4",
+        "phpguard/phpguard":        "0.1.*@dev"
+    },
+    "require-dev": {
+        "phpguard/plugin-phpspec":  "@dev",
+        "phpspec/phpspec": "2.1.*@dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "PhpGuard\\Plugins\\Behat\\": "src/"
+        }
+    }
+}
