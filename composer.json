@@ -21,5 +21,11 @@
         "psr-4": {
             "PhpGuard\\Plugins\\Behat\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PhpGuard\\Plugins\\Behat\\Acceptance\\": "features/bootstrap"
+        }
     }
+
 }

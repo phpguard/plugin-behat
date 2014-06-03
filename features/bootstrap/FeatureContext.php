@@ -1,8 +1,10 @@
 <?php
 
 require_once __DIR__.'/../../vendor/autoload.php';
+
 use Behat\Behat\Context\BehatContext;
 use PhpGuard\Plugins\Behat\Bridge\Context\PhpGuardContext;
+use PhpGuard\Plugins\Behat\Acceptance\BehatPluginContext;
 
 /**
  * Features context.

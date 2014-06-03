@@ -10,6 +10,7 @@
  */
 
 namespace PhpGuard\Plugins\Behat\Bridge\Context;
+
 use Behat\Behat\Context\BehatContext;
 use Behat\Gherkin\Node\PyStringNode;
 use PhpGuard\Application\Test\ApplicationTester;
@@ -19,7 +20,7 @@ use PhpGuard\Plugins\PhpSpec\Bridge\Console\Application;
 
 /**
  * Class PhpGuardContext
- *
+ * @codeCoverageIgnore
  */
 class PhpGuardContext extends BehatContext
 {
@@ -38,11 +39,16 @@ class PhpGuardContext extends BehatContext
      */
     protected $application = null;
 
+    static $cwd;
+
     /**
      * @BeforeScenario
      */
     public function createWorkDir()
     {
+        if(!static::$cwd){
+            static::$cwd = getcwd();
+        }
         $this->workDir = sprintf(
             '%s/phpguard-behat/%s',
             sys_get_temp_dir(),
@@ -51,6 +57,9 @@ class PhpGuardContext extends BehatContext
 
         $fs = new Filesystem();
         $fs->mkdir($this->workDir,0777);
+        if(is_file('stdout')){
+            unlink('stdout');
+        }
         chdir($this->workDir);
     }
 
@@ -62,6 +71,7 @@ class PhpGuardContext extends BehatContext
         Filesystem::create()
             ->cleanDir($this->workDir)
         ;
+        chdir(static::$cwd);
     }
 
     /**
@@ -74,7 +84,7 @@ class PhpGuardContext extends BehatContext
     }
 
     /**
-     * @When /^I run phpguard with "([^"]*)" arguments$/
+     * @When /^I run phpguard with "([^"]*)"$/
      */
     public function iRunPhpGuardWith($arguments)
     {
@@ -92,7 +102,7 @@ class PhpGuardContext extends BehatContext
     }
 
     /**
-     * @Given /^(?:|the ) file "(?P<file>[^"]+)" contains:$/
+     * @Given /^(?:|the )(?:spec |class |feature )file "(?P<file>[^"]+)" contains:$/
      */
     public function theFileContains($file,PyStringNode $string)
     {
@@ -114,11 +124,24 @@ class PhpGuardContext extends BehatContext
     }
 
     /**
+     * @Given /^the file "(?P<file>[^"]+)" contains:$/
+     */
+    public function theSomeFileContains($file,PyStringNode $string)
+    {
+        file_put_contents($file, $string->getRaw());
+    }
+
+    /**
      * @Then /^(?:|I )should see "(?P<message>[^"]*)"$/
      */
     public function iShouldSee($message)
     {
-        expect($this->applicationTester->getDisplay())->toMatch('/'.preg_quote($message, '/').'/sm');
+        if(file_exists('stdout')){
+            $display = file_get_contents('stdout');
+        }else{
+            $display= $this->applicationTester->getDisplay();
+        }
+        expect($display)->toMatch('/'.preg_quote($message, '/').'/sm');
     }
 
     /**
@@ -158,5 +181,10 @@ class PhpGuardContext extends BehatContext
         $application->setAutoExit(false);
 
         return new ApplicationTester($application);
+    }
+
+    public function setApplicationTester(ApplicationTester $tester)
+    {
+        $this->applicationTester = $tester;
     }
 }

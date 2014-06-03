@@ -11,6 +11,7 @@
 
 namespace PhpGuard\Plugins\Behat;
 
+use PhpGuard\Application\Event\GenericEvent;
 use PhpGuard\Application\Event\ProcessEvent;
 use PhpGuard\Application\Plugin\Plugin;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
@@ -25,12 +26,13 @@ class BehatPlugin extends Plugin
     {
         $this->setOptions(array());
     }
+
     public function configure()
     {
         parent::configure();
         $container = $this->container;
 
-        $executable = $this->container->get('runner')->findExecutable('behat');
+        $executable = realpath(__DIR__.'/../bin/behat-phpguard');
         $this->options['executable'] = $executable;
         $container->setShared('behat.inspector',function(){
             return new Inspector();
@@ -51,6 +53,14 @@ class BehatPlugin extends Plugin
     public function getTitle()
     {
         return 'Behat';
+    }
+
+    public function start(GenericEvent $event)
+    {
+        $results = $this->container->get('behat.inspector')
+            ->runAll();
+
+        $event->addProcessEvent(new ProcessEvent($this,$results));
     }
 
     /**
@@ -91,6 +101,7 @@ class BehatPlugin extends Plugin
             'run_all_cli'       => null,
             'coverage'          => false,
             'all_after_pass'    => false,
+            'all_on_start'      => false,
             'keep_failed'       => false,
         ));
     }

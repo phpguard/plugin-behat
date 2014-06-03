@@ -27,9 +27,10 @@ phpspec:
 
 behat:
     options:
-        cli:                "--format=progress"
-        run_all_cli:        "--format=pretty"
+        cli:                "--format=pretty"
+        run_all_cli:        "--format=progress"
+        all_on_start:       true
     watch:
-        - { pattern: "#^src\/(.+)\.php$#", transform: "features/run/run.feature" }
+        - { pattern: "#^src\/(.+)\.php$#", transform: "features" }
         - { pattern: "#^features\/(.+)\.feature$#" }
         - { pattern: "#^features\/(.+)\.php$#", transform: features }

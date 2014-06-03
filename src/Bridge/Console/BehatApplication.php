@@ -12,8 +12,12 @@
 namespace PhpGuard\Plugins\Behat\Bridge\Console;
 
 use Behat\Behat\Console\BehatApplication as BaseApplication;
-use PhpGuard\Plugins\Behat\Bridge\PhpGuardExtension;
+use PhpGuard\Application\Bridge\CodeCoverage\CodeCoverageSession;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 
 /**
  * Class Application
@@ -21,13 +25,51 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  */
 class BehatApplication extends BaseApplication
 {
-    public function __construct()
+    /**
+     * @var CodeCoverageSession
+     */
+    private $coverageSession;
+
+    private $internalOutput;
+
+    public function __construct(CodeCoverageSession $coverageSession=null)
     {
-        BaseApplication::__construct('PhpGuard::Behat');
+        parent::__construct('PhpGuard-Behat');
+        $this->coverageSession = $coverageSession;
+    }
+
+    public function doRun(InputInterface $input, OutputInterface $output)
+    {
+        $this->internalOutput = $output;
+        return parent::doRun($input, $output);
+    }
+
+    public function renderException($e, $output=null)
+    {
+        if(is_null($output)){
+            $output = $this->internalOutput;
+        }
+        parent::renderException($e, $output);
+    }
+
+    public function saveCoverage()
+    {
+        if($this->coverageSession){
+            $this->coverageSession->saveState();
+        }
     }
 
     protected function loadCoreExtension(ContainerBuilder $container, array $configs)
     {
-        BaseApplication::loadCoreExtension($container, $configs);
+        // patch configuration here
+        $this->registerSubscriber($container);
+        parent::loadCoreExtension($container, $configs);
+    }
+
+    protected function registerSubscriber(ContainerBuilder $container)
+    {
+        $definition = new Definition('PhpGuard\Plugins\Behat\Bridge\BehatEventListener',array($this->coverageSession));
+        $definition->addTag('behat.event_subscriber');
+        $container->setDefinition('behat.event_subscriber.phpguard',$definition);
     }
 }

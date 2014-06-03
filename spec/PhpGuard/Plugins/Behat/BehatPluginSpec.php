@@ -7,6 +7,7 @@ use PhpGuard\Plugins\Behat\Inspector;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use PhpGuard\Application\Container\ContainerInterface;
+use PhpGuard\Application\Event\GenericEvent;
 
 class BehatPluginSpec extends ObjectBehavior
 {
@@ -38,14 +39,14 @@ class BehatPluginSpec extends ObjectBehavior
     )
     {
         $this->beConstructedWith();
-        $container->get('runner')
+        /*$container->get('runner')
             ->shouldBeCalled()
             ->willReturn($runner)
         ;
-        $runner->findExecutable('behat')
+        $runner->findExecutable('behat-phpguard')
             ->shouldBeCalled()
             ->willReturn('some')
-        ;
+        ;*/
         $container->setShared('behat.inspector',Argument::any())
             ->shouldBeCalled()
         ;
@@ -78,5 +79,20 @@ class BehatPluginSpec extends ObjectBehavior
         $processEvent = $this->runAll();
         $processEvent->shouldHaveType('PhpGuard\Application\Event\ProcessEvent');
         $processEvent->getResults()->shouldContain('result');
+    }
+
+    function it_should_run_all_on_start_if_defined(
+        Inspector $inspector,
+        GenericEvent $event
+    )
+    {
+        $event->addProcessEvent(Argument::any())
+            ->shouldBeCalled();
+        $inspector->runAll()
+            ->shouldBeCalled()
+            ->willReturn(array())
+        ;
+
+        $this->start($event);
     }
 }

@@ -29,5 +29,15 @@ if ((!$loader = includeIfExists(__DIR__.'/../vendor/autoload.php')) && (!$loader
 }
 
 use PhpGuard\Plugins\Behat\Bridge\Console\BehatApplication;
-$app = new BehatApplication(BEHAT_VERSION);
-$app->run();
+use PhpGuard\Application\Bridge\CodeCoverage\CodeCoverageSession;
+try{
+    $coverageSession = CodeCoverageSession::getCached();
+    $app = new BehatApplication($coverageSession);
+    $app->setAutoExit(false);
+    $code = $app->run();
+    $app->saveCoverage();
+}catch (\Exception $e){
+    $app->setAutoExit(true);
+    $app->renderException($e);
+    exit(1);
+}
