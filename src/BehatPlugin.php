@@ -11,6 +11,7 @@
 
 namespace PhpGuard\Plugins\Behat;
 
+use PhpGuard\Application\ApplicationEvents;
 use PhpGuard\Application\Event\GenericEvent;
 use PhpGuard\Application\Event\ProcessEvent;
 use PhpGuard\Application\Plugin\Plugin;
@@ -25,6 +26,13 @@ class BehatPlugin extends Plugin
     public function __construct()
     {
         $this->setOptions(array());
+    }
+
+    public static function getSubscribedEvents()
+    {
+        return array(
+            ApplicationEvents::started => 'start'
+        );
     }
 
     public function configure()
