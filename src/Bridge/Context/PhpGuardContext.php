@@ -50,9 +50,9 @@ class PhpGuardContext extends BehatContext
             static::$cwd = getcwd();
         }
         $this->workDir = sprintf(
-            '%s/phpguard-behat/%s',
+            '%s/phpguard-test/%s',
             sys_get_temp_dir(),
-            uniqid('context_')
+            uniqid('behat_')
         );
 
         $fs = new Filesystem();
@@ -141,7 +141,7 @@ class PhpGuardContext extends BehatContext
         }else{
             $display= $this->applicationTester->getDisplay();
         }
-        expect($display)->toMatch('/'.preg_quote($message, '/').'/sm');
+        expect($display)->toMatch('/'.$message.'/sm');
     }
 
     /**

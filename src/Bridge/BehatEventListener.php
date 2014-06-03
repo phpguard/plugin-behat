@@ -10,9 +10,16 @@
  */
 
 namespace PhpGuard\Plugins\Behat\Bridge;
+
+use Behat\Behat\Event\FeatureEvent;
+use Behat\Behat\Event\ScenarioEvent;
 use Behat\Behat\Event\StepEvent;
-use Behat\Behat\Event\SuiteEvent;
 use PhpGuard\Application\Bridge\CodeCoverage\CodeCoverageSession;
+use PhpGuard\Application\Container;
+use PhpGuard\Application\Util\Filesystem;
+use PhpGuard\Plugins\Behat\Inspector;
+use PhpGuard\Plugins\Behat\Event\ResultEvent;
+use PhpGuard\Plugins\Behat\Session;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -21,14 +28,39 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class BehatEventListener implements EventSubscriberInterface
 {
+
     /**
-     * @var CodeCoverageSession|bool
+     * @var \PhpGuard\Application\Bridge\CodeCoverage\CodeCoverageSession
      */
     private $coverageSession;
 
-    public function __construct($coverageSession=false)
+    /**
+     * @var \PhpGuard\Plugins\Behat\Session
+     */
+    private $session;
+
+    /**
+     * @var Filesystem
+     */
+    private $filesystem;
+
+    public function __construct(
+        CodeCoverageSession $coverageSession=null,
+        Session $session = null,
+        Filesystem $filesystem = null
+    )
     {
-        $this->coverageSession = $coverageSession;
+        if(is_null($filesystem)){
+            $filesystem = Filesystem::create();
+        }
+
+        if(is_null($session)){
+            $session = new Session();
+        }
+
+        $this->coverageSession  = $coverageSession;
+        $this->filesystem       = $filesystem;
+        $this->session          = $session;
     }
 
     /**
@@ -51,29 +83,55 @@ class BehatEventListener implements EventSubscriberInterface
      *
      * @api
      */
-    public static function getSubscribedEvents()
+    static public function getSubscribedEvents()
     {
         return array(
             'beforeStep' => array('beforeStep',-10),
             'afterStep' => array('afterStep',-10),
-            //'beforeSuite' => array('beforeSuite',-10),
-            //'afterSuite' => array('afterSuite',-10),
+            'afterFeature' => array('afterFeature',-10),
+            'afterScenario' => array('afterScenario',-10),
+            'beforeSuite' => array('beforeSuite',-10),
+            'afterSuite' => array('afterSuite',-10),
         );
     }
 
     public function beforeStep(StepEvent $event)
     {
-        $title = $event->getStep()->getParent()->getTitle();
-        $text = $event->getStep()->getText();
-        $type = $event->getStep()->getType();
+        $title  = $event->getStep()->getParent()->getTitle();
+        $text   = $event->getStep()->getText();
+        $type   = $event->getStep()->getType();
 
         $id = sprintf('Scenario: %s on Step: %s %s',$title,$type,$text);
         $this->startCoverage($id);
     }
 
-    public function afterStep()
+    public function afterStep(StepEvent $event)
     {
+        $this->session->addResult($event);
         $this->stopCoverage();
+    }
+
+    public function afterScenario(ScenarioEvent $event)
+    {
+        $this->session->addResult($event);
+    }
+
+    public function afterFeature(FeatureEvent $event)
+    {
+        $this->session->addResult($event);
+    }
+
+    public function beforeSuite()
+    {
+        $this->session->start();
+    }
+
+    public function afterSuite()
+    {
+        if($this->coverageSession){
+            $this->coverageSession->saveState();
+        }
+        $this->session->stop();
     }
 
     private function startCoverage($name)

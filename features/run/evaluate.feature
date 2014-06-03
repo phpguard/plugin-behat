@@ -28,21 +28,6 @@ Feature: Developer change some file
           And I should see "2 steps"
           And I should see "1 passed"
           And I should see "1 failed"
-
-    Scenario: Running successfully behat with phpguard patch
-        Given the file "features/some.feature" contains:
-              """
-              Feature: Some Feature
-                As something
-                I want something
-                In order to get something
-
-                Scenario: Some Scenario
-                    Given I have passed step
-                     Then I have failed step
-              """
-         When I run behat
-         Then I should see "1 scenario"
-          And I should see "2 steps"
-          And I should see "1 passed"
-          And I should see "1 failed"
+          And I should see "[FAIL]*Feature: Some Feature"
+          And I should see "[FAIL]*Scenario: Some Scenario"
+          And I should see "[FAIL]*Then I have failed step"

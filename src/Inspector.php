@@ -39,10 +39,28 @@ class Inspector extends ContainerAware
 
     private $options;
 
+    /**
+     * @var Session
+     */
+    private $session;
+
+    public function __construct()
+    {
+        $this->session = new Session();
+    }
+
     public static function getRerunFileName()
     {
         $dir = PhpGuard::getPluginCache('behat');
         $file = $dir.DIRECTORY_SEPARATOR.'rerun.dat';
+
+        return $file;
+    }
+
+    public static function getResultFileName()
+    {
+        $dir = PhpGuard::getPluginCache('behat');
+        $file = $dir.DIRECTORY_SEPARATOR.'result.dat';
 
         return $file;
     }
@@ -79,8 +97,13 @@ class Inspector extends ContainerAware
             }
         }
 
+
+        $rerunFile = static::getRerunFileName();
         $features = array_unique($features);
-        $arguments[] = implode(',',$features);
+        $content = implode("\n",$features);
+        $this->getFilesystem()->putFileContents($rerunFile,$content);
+
+        $arguments[] = '--rerun='.$rerunFile;
 
         $builder = new ProcessBuilder($arguments);
         $process = $this->getRunner()->run($builder);
@@ -95,6 +118,9 @@ class Inspector extends ContainerAware
             if ($this->options['all_after_pass']) {
                 $results = array_merge($results,$this->doRunAll());
             }
+        }else{
+            $this->session = Session::create();
+            $results = $this->session->getResults();
         }
 
         return $results;
@@ -112,7 +138,8 @@ class Inspector extends ContainerAware
      */
     public function isFailed()
     {
-        return $this->getFilesystem()->pathExists(static::getRerunFileName());
+        //return $this->getFilesystem()->pathExists(static::getRerunFileName());
+        return count($this->session->getResults()) > 0;
     }
 
     /**
@@ -125,16 +152,19 @@ class Inspector extends ContainerAware
         $arguments = $this->runAllArgs;
 
         if ($this->isFailed()) {
-            $arguments[] = '--rerun='.static::getRerunFileName();
+            //$arguments[] = '--rerun='.static::getRerunFileName();
         }
+
         $builder = new ProcessBuilder($arguments);
 
         $this->getRunner()->run($builder);
 
+        $this->session = Session::create();
+
         if (!$this->isFailed()) {
             $results[] = ResultEvent::createSucceed(static::RUN_ALL_SUCCESS_MESSAGE);
         } else {
-            $results = $this->parseRerunFile();
+            $results = $this->session->getResults();
             $results[] = ResultEvent::createFailed(static::RUN_ALL_FAILED_MESSAGE);
         }
 

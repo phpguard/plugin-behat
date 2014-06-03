@@ -1,6 +1,0 @@
-default:
-    formatter:
-        name: pretty
-wip:
-    formatter:
-        name: progress

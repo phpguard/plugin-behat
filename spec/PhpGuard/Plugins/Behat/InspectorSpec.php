@@ -3,6 +3,7 @@
 namespace spec\PhpGuard\Plugins\Behat;
 
 use PhpGuard\Application\Container\ContainerInterface;
+use PhpGuard\Application\PhpGuard;
 use PhpGuard\Application\Spec\PluginBehavior;
 use PhpGuard\Application\Util\Filesystem;
 use PhpGuard\Application\Util\Runner;
@@ -14,6 +15,8 @@ use Symfony\Component\Process\Process;
 class InspectorSpec extends PluginBehavior
 {
     private $options;
+
+    private $rerunFile;
 
     function let(
         ContainerInterface $container,
@@ -47,7 +50,7 @@ class InspectorSpec extends PluginBehavior
             ->willReturn(false);
         $container->get('filesystem')->willReturn($filesystem);
 
-
+        $this->rerunFile = Inspector::getRerunFileName();
         $this->setContainer($container);
     }
 
@@ -63,17 +66,22 @@ class InspectorSpec extends PluginBehavior
 
     function it_should_run_behat(
         Runner $runner,
-        Process $process
+        Process $process,
+        Filesystem $filesystem
     )
     {
 
-        $runner->run(Argument::runnerRun(array('executable','hello.feature','world.feature')))
+        $rerunFile = Inspector::getRerunFileName();
+        $runner->run(Argument::runnerRun('executable,'.$rerunFile))
             ->shouldBeCalled()
             ->willReturn($process)
         ;
         $process->getExitCode()
             ->shouldBeCalled()
             ->willReturn(0)
+        ;
+        $filesystem->putFileContents($rerunFile,Argument::any())
+            ->shouldBeCalled()
         ;
         $paths = array('hello.feature','world.feature');
         $results = $this->run($paths);
@@ -93,10 +101,13 @@ class InspectorSpec extends PluginBehavior
         ContainerInterface $container,
         Runner $runner,
         Process $process,
-        BehatPlugin $plugin
+        BehatPlugin $plugin,
+        Filesystem $filesystem
     )
     {
 
+        $filesystem->putFileContents($this->rerunFile,Argument::any())
+            ->willReturn();
         $options = $this->options;
         $options['all_after_pass'] = true;
 
