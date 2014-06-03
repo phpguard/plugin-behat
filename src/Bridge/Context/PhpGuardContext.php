@@ -39,7 +39,7 @@ class PhpGuardContext extends BehatContext
      */
     protected $application = null;
 
-    static $cwd;
+    static protected $cwd;
 
     /**
      * @BeforeScenario
