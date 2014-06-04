@@ -57,14 +57,6 @@ class Inspector extends ContainerAware
         return $file;
     }
 
-    public static function getResultFileName()
-    {
-        $dir = PhpGuard::getPluginCache('behat');
-        $file = $dir.DIRECTORY_SEPARATOR.'result.dat';
-
-        return $file;
-    }
-
     public function setContainer(ContainerInterface $container)
     {
         parent::setContainer($container);
@@ -151,8 +143,11 @@ class Inspector extends ContainerAware
 
         $arguments = $this->runAllArgs;
 
+        $this->session = Session::create();
+
         if ($this->isFailed()) {
-            //$arguments[] = '--rerun='.static::getRerunFileName();
+            $rerunFile = $this->session->generateRerunFile();
+            $arguments[] = '--rerun='.$rerunFile;
         }
 
         $builder = new ProcessBuilder($arguments);
@@ -169,38 +164,6 @@ class Inspector extends ContainerAware
         }
 
         return $results;
-    }
-
-    private function parseRerunFile()
-    {
-        $contents = $this->getFilesystem()->getFileContents(Inspector::getRerunFileName());
-
-        $results = array();
-        $contents = explode(PHP_EOL,$contents);
-        foreach ($contents as $content) {
-            $content = trim($content);
-            if ($content) {
-                $exp = explode(':',$content);
-                $file = $exp[0];
-                $line = $exp[1];
-                $results[] = $this->parseFeatureContent($file,$line);
-            }
-        }
-
-        return $results;
-    }
-
-    private function parseFeatureContent($file,$line)
-    {
-        $contents = $this->getFilesystem()->getFileContents($file);
-        $contents = explode("\n",$contents);
-        $lineContent = trim($contents[$line-1]);
-
-        $strlen = strlen('Scenario:');
-        $scenario = trim(substr($lineContent,$strlen));
-        $message = sprintf('Failed: <highlight>%s</highlight>',$scenario);
-
-        return ResultEvent::createFailed($message);
     }
 
     /**

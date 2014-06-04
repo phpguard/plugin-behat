@@ -42,9 +42,11 @@ class BehatPlugin extends Plugin
 
         $executable = realpath(__DIR__.'/../bin/behat-phpguard');
         $this->options['executable'] = $executable;
-        $container->setShared('behat.inspector',function(){
-            return new Inspector();
-        });
+        if(!$container->has('behat.inspector')){
+            $container->setShared('behat.inspector',function(){
+                return new Inspector();
+            });
+        }
     }
 
     /**
@@ -65,10 +67,11 @@ class BehatPlugin extends Plugin
 
     public function start(GenericEvent $event)
     {
-        $results = $this->container->get('behat.inspector')
-            ->runAll();
-
-        $event->addProcessEvent(new ProcessEvent($this,$results));
+        if($this->options['all_on_start']){
+            $results = $this->container->get('behat.inspector')
+                ->runAll();
+            $event->addProcessEvent(new ProcessEvent($this,$results));
+        }
     }
 
     /**

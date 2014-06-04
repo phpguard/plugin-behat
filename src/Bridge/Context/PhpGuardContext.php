@@ -64,13 +64,20 @@ class PhpGuardContext extends BehatContext
     }
 
     /**
+     * @beforeSuite
+     */
+    static public function cleanTestDir()
+    {
+        Filesystem::create()
+            ->cleanDir('/tmp/phpguard-test')
+        ;
+    }
+
+    /**
      * @AfterScenario
      */
     public function removeWorkDir()
     {
-        Filesystem::create()
-            ->cleanDir($this->workDir)
-        ;
         chdir(static::$cwd);
     }
 
@@ -80,7 +87,7 @@ class PhpGuardContext extends BehatContext
     public function iStartPhpGuard()
     {
         $this->applicationTester = $this->createApplicationTester();
-        $this->applicationTester->run('start',array('decorated'=>false));
+        $this->applicationTester->run('start -vvv',array('decorated'=>false));
     }
 
     /**
@@ -88,12 +95,11 @@ class PhpGuardContext extends BehatContext
      */
     public function iRunPhpGuardWith($arguments)
     {
-        $this->applicationTester = $this->createApplicationTester();
         $this->applicationTester->run($arguments,array('decorated'=>false));
     }
 
     /**
-     * @When /^I (?:create |modify )file "(?P<file>[^"]+)" with contents:$/
+     * @When /^I (?:create |modify )file "(?P<file>[^"]+)" with:$/
      */
     public function iDoSomethingWithFile($file,PyStringNode $string)
     {
@@ -111,8 +117,17 @@ class PhpGuardContext extends BehatContext
         if(!file_exists($dirname)){
             $fs->mkdir($dirname);
         }
-
         $fs->putFileContents($file,$string->getRaw());
+        clearstatcache($file);
+    }
+
+    /**
+     * @Then /^(?:|the )file "(?P<file>[^"]+)" should contains "(?P<content>[^"]*)"$/
+     */
+    public function theFileShouldContains($file,$content)
+    {
+        expect(file_exists($file))->toBe(true);
+        expect(file_get_contents($file))->toMatch('/'.$content.'/sm');
     }
 
     /**
@@ -153,7 +168,7 @@ class PhpGuardContext extends BehatContext
     }
 
     /**
-     * @return Application|null
+     * @return TestApplication|null
      */
     public function getApplication()
     {

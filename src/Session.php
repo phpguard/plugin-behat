@@ -149,6 +149,33 @@ class Session implements \Serializable
         return $this->results;
     }
 
+    public function generateRerunFile()
+    {
+        $dir = PhpGuard::getPluginCache('behat');
+        $rerunFile = $dir.'/rerun.dat';
+
+        // clean up unexisting result
+        $this->cleanup();
+
+        $rerun = array();
+        foreach($this->results as $result){
+            if(!in_array($file=$result->getFile(),$rerun)){
+                $rerun[] = $file;
+            }
+        }
+        $content = implode("\n",$rerun);
+        $this->fs->putFileContents($rerunFile,$content);
+        return $rerunFile;
+    }
+
+    public function clear()
+    {
+        $fs = $this->fs;
+        if($fs->pathExists($this->path)){
+            unlink($this->path);
+        }
+    }
+
     private function saveResult()
     {
         $this->fs->serialize($this->path,$this);

@@ -22,6 +22,9 @@ class BehatPluginSpec extends ObjectBehavior
         ;
         $container->setShared('behat.inspector',Argument::any())
             ->willReturn();
+        $container->has('behat.inspector')
+            ->willReturn(false);
+
         $container->get('runner')->willReturn($runner);
         $this->setContainer($container);
 
@@ -93,6 +96,8 @@ class BehatPluginSpec extends ObjectBehavior
             ->willReturn(array())
         ;
 
+        $options = array('all_on_start' => true);
+        $this->setOptions($options);
         $this->start($event);
     }
 }

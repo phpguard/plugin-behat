@@ -62,11 +62,11 @@ class ResultEvent extends BaseResultEvent
     public function __construct($event)
     {
         $map = array(
-            StepEvent::PASSED => static::SUCCEED,
-            StepEvent::FAILED => static::FAILED,
-            StepEvent::PENDING => static::FAILED,
-            StepEvent::SKIPPED => static::SUCCEED,
-            StepEvent::UNDEFINED => static::BROKEN,
+            StepEvent::PASSED       => static::SUCCEED,
+            StepEvent::FAILED       => static::FAILED,
+            StepEvent::PENDING      => static::FAILED,
+            StepEvent::SKIPPED      => static::SUCCEED,
+            StepEvent::UNDEFINED    => static::BROKEN,
         );
 
         $result = static::BROKEN;

@@ -44,6 +44,11 @@ class BehatEventListener implements EventSubscriberInterface
      */
     private $filesystem;
 
+    /**
+     * @var string
+     */
+    private $cwd;
+
     public function __construct(
         CodeCoverageSession $coverageSession=null,
         Session $session = null,
@@ -61,6 +66,7 @@ class BehatEventListener implements EventSubscriberInterface
         $this->coverageSession  = $coverageSession;
         $this->filesystem       = $filesystem;
         $this->session          = $session;
+        $this->cwd              = getcwd();
     }
 
     /**
@@ -97,11 +103,13 @@ class BehatEventListener implements EventSubscriberInterface
 
     public function beforeStep(StepEvent $event)
     {
-        $title  = $event->getStep()->getParent()->getTitle();
+        $file   = $event->getStep()->getFile();
+        $relativePath = ltrim(str_replace($this->cwd,'',$file),'\\/');
         $text   = $event->getStep()->getText();
         $type   = $event->getStep()->getType();
+        $line   = $event->getStep()->getLine();
 
-        $id = sprintf('Scenario: %s on Step: %s %s',$title,$type,$text);
+        $id = sprintf('%s on %s %s line: %s',$relativePath,$type,$text,$line);
         $this->startCoverage($id);
     }
 

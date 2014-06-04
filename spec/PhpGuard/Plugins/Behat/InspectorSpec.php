@@ -2,6 +2,7 @@
 
 namespace spec\PhpGuard\Plugins\Behat;
 
+use Behat\Behat\Event\StepEvent;
 use PhpGuard\Application\Container\ContainerInterface;
 use PhpGuard\Application\PhpGuard;
 use PhpGuard\Application\Spec\PluginBehavior;
@@ -9,7 +10,9 @@ use PhpGuard\Application\Util\Filesystem;
 use PhpGuard\Application\Util\Runner;
 use PhpGuard\Plugins\Behat\BehatPlugin;
 use PhpGuard\Application\Spec\Prophecy\Argument;
+use PhpGuard\Plugins\Behat\Event\ResultEvent;
 use PhpGuard\Plugins\Behat\Inspector;
+use PhpGuard\Plugins\Behat\Session;
 use Symfony\Component\Process\Process;
 
 class InspectorSpec extends PluginBehavior
@@ -17,6 +20,9 @@ class InspectorSpec extends PluginBehavior
     private $options;
 
     private $rerunFile;
+
+    static private $cwd;
+
 
     function let(
         ContainerInterface $container,
@@ -26,6 +32,15 @@ class InspectorSpec extends PluginBehavior
         Filesystem $filesystem
     )
     {
+        if(is_null(static::$cwd)){
+            static::$cwd = getcwd();
+        }
+
+        if(!is_dir(static::$tmpDir)){
+            mkdir(static::$tmpDir,0777,true);
+        }
+
+        chdir(static::$tmpDir);
         $container->get('plugins.behat')
             ->willReturn($plugin)
         ;
@@ -52,6 +67,11 @@ class InspectorSpec extends PluginBehavior
 
         $this->rerunFile = Inspector::getRerunFileName();
         $this->setContainer($container);
+    }
+
+    function letgo()
+    {
+        chdir(static::$cwd);
     }
 
     function it_is_initializable()
@@ -139,63 +159,5 @@ class InspectorSpec extends PluginBehavior
         $results = $this->runAll();
         $results->shouldHaveCount(1);
         $results->shouldContainMessage(Inspector::RUN_ALL_SUCCESS_MESSAGE);
-    }
-
-    function it_should_parse_rerun_file_result(
-        Filesystem $filesystem,
-        Runner $runner
-    )
-    {
-        $content = <<<EOC
-some.feature:4
-
-EOC;
-
-        $featureContent = <<<EOC
-Feature: Some feature
-    Some description
-
-    Scenario: some_scenario
-
-EOC;
-
-        $filesystem->getFileContents(Inspector::getRerunFileName())
-            ->willReturn($content);
-
-        $filesystem->pathExists(Inspector::getRerunFileName())
-            ->shouldBeCalled()
-            ->willReturn(true);
-
-        $filesystem->getFileContents('some.feature')
-            ->willReturn($featureContent)
-        ;
-
-        $runner->run(Argument::runnerRun('executable,run_all_cli'))
-            ->shouldBeCalled()
-        ;
-        $results = $this->runAll();
-        $results->shouldHaveCount(2);
-
-        $results->shouldContainMessage(Inspector::RUN_ALL_FAILED_MESSAGE);
-        $results->shouldContainMessage('some_scenario');
-    }
-
-    function it_should_keep_failed_test_to_run(
-        Filesystem $filesystem,
-        Runner $runner
-    )
-    {
-        $file = Inspector::getRerunFileName();
-        $filesystem->pathExists($file)
-            ->willReturn(true);
-        $filesystem->getFileContents($file)
-            ->shouldBeCalled()
-            ->willReturn('')
-        ;
-        $runner->run(Argument::runnerRun('run_all_cli,'.$file))
-            ->shouldBeCalled();
-
-        $results = $this->runAll();
-        $results->shouldContainMessage(Inspector::RUN_ALL_FAILED_MESSAGE);
     }
 }
