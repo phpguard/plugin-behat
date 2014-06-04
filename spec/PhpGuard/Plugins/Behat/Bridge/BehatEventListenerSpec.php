@@ -58,10 +58,11 @@ class BehatEventListenerSpec extends ObjectBehavior
         $stepEvent->getStep()->willReturn($stepNode);
         $stepNode->getText()->willReturn('text');
         $stepNode->getParent()->willReturn($scenarioNode);
-        $scenarioNode->getTitle()->willReturn('scenario');
+        $stepNode->getFile()->willReturn('some_file');
+        $stepNode->getLine()->willReturn(1);
 
         $stepNode->getType()->willReturn('type');
-        $coverageSession->start('Scenario: scenario on Step: type text')
+        $coverageSession->start('some_file on type text line: 1')
             ->shouldBeCalled()
         ;
 
