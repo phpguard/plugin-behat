@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "behat/behat":              "~2.4",
+        "behat/behat":              ">=2.4",
         "phpguard/phpguard":        "0.1.*@dev"
     },
     "require-dev": {
